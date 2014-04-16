@@ -39,7 +39,7 @@ static const BOOL kEnableContinueLabel = YES;
     self = [super initWithFrame:frame];
     if (self) {
         // Save the coach marks
-        self.coachMarks = marks;
+        self.coachMarks = [NSArray arrayWithArray:marks];
 
         // Setup
         [self setup];
@@ -96,6 +96,31 @@ static const BOOL kEnableContinueLabel = YES;
 
     // Hide until unvoked
     self.hidden = YES;
+}
+
+#pragma mark - Rotation
+
+- (void)willRotateTo:(UIInterfaceOrientation)toInterfaceOrientation
+{
+    self.hidden = YES;
+}
+
+- (void)didRotateFrom:(UIInterfaceOrientation)fromInterfaceOrientation
+         toCoachMarks:(NSArray *)toCoachMarks
+        inContainerViewFrame:(CGRect)newFrame
+{
+    self.coachMarks = [NSArray arrayWithArray:toCoachMarks];
+    
+    self.frame = newFrame;
+    
+    NSDictionary *markDef = [self.coachMarks objectAtIndex:markIndex];
+    CGRect markRect = [[markDef objectForKey:@"rect"] CGRectValue];
+    
+    [self setCutoutToRect:markRect];
+    
+    self.hidden = NO;
+    
+    [self goToCoachMarkIndexed:markIndex];
 }
 
 #pragma mark - Cutout modify
@@ -209,18 +234,29 @@ static const BOOL kEnableContinueLabel = YES;
 
     // Show continue lbl if first mark
     if (self.enableContinueLabel) {
-        if (markIndex == 0) {
-            lblContinue = [[UILabel alloc] initWithFrame:(CGRect){{0, self.bounds.size.height - 30.0f}, {self.bounds.size.width, 30.0f}}];
-            lblContinue.font = [UIFont boldSystemFontOfSize:13.0f];
-            lblContinue.textAlignment = NSTextAlignmentCenter;
-            lblContinue.text = @"Tap to continue";
-            lblContinue.alpha = 0.0f;
-            lblContinue.backgroundColor = [UIColor whiteColor];
-            [self addSubview:lblContinue];
-            [UIView animateWithDuration:0.3f delay:1.0f options:0 animations:^{
-                lblContinue.alpha = 1.0f;
-            } completion:nil];
-        } else if (markIndex > 0 && lblContinue != nil) {
+        if (markIndex == 0)
+        {
+            if (!lblContinue)
+            {
+                lblContinue = [[UILabel alloc] initWithFrame:(CGRect){{0, self.bounds.size.height - 30.0f}, {self.bounds.size.width, 30.0f}}];
+                lblContinue.font = [UIFont boldSystemFontOfSize:13.0f];
+                lblContinue.textAlignment = NSTextAlignmentCenter;
+                lblContinue.text = NSLocalizedString(@"Tap to continue", @"Text of the label to welcome users to tap anywhere on the screen to continue. Label displayed if enabled on first step at the bottom of the CoachMarksView.");
+                lblContinue.alpha = 0.0f;
+                lblContinue.backgroundColor = [UIColor whiteColor];
+                [self addSubview:lblContinue];
+                [UIView animateWithDuration:0.3f delay:1.0f options:0 animations:^{
+                    lblContinue.alpha = 1.0f;
+                } completion:nil];
+            }
+            else
+            {
+                lblContinue.frame = (CGRect){{0, self.bounds.size.height - 30.0f}, {self.bounds.size.width, 30.0f}};
+            }
+            
+        }
+        else if (markIndex > 0 && lblContinue != nil)
+        {
             // Otherwise, remove the lbl
             [lblContinue removeFromSuperview];
             lblContinue = nil;
@@ -242,6 +278,11 @@ static const BOOL kEnableContinueLabel = YES;
                          self.alpha = 0.0f;
                      }
                      completion:^(BOOL finished) {
+                        
+                         // Leaks if you forget to remove and set to nil
+                         [mask removeFromSuperlayer];
+                         mask = nil;
+                         
                          // Remove self
                          [self removeFromSuperview];
 

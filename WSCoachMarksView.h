@@ -43,9 +43,9 @@
 @interface WSCoachMarksView : UIView
 
 @property (nonatomic, WS_WEAK) id<WSCoachMarksViewDelegate> delegate;
-@property (nonatomic, retain) NSArray *coachMarks;
-@property (nonatomic, retain) UILabel *lblCaption;
-@property (nonatomic, retain) UIColor *maskColor;
+@property (nonatomic, strong) NSArray *coachMarks;
+@property (nonatomic, strong) UILabel *lblCaption;
+@property (nonatomic, strong) UIColor *maskColor;
 @property (nonatomic) CGFloat animationDuration;
 @property (nonatomic) CGFloat cutoutRadius;
 @property (nonatomic) CGFloat maxLblWidth;
@@ -54,6 +54,10 @@
 
 - (id)initWithFrame:(CGRect)frame coachMarks:(NSArray *)marks;
 - (void)start;
+
+- (void)willRotateTo:(UIInterfaceOrientation)toInterfaceOrientation;
+- (void)didRotateFrom:(UIInterfaceOrientation)fromInterfaceOrientation toCoachMarks:(NSArray *)toCoachMarks inContainerViewFrame:(CGRect)newFrame;
+
 
 @end
 
@@ -66,3 +70,11 @@
 - (void)coachMarksViewDidCleanup:(WSCoachMarksView*)coachMarksView;
 
 @end
+
+
+
+
+
+
+
+
